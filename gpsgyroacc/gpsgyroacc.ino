@@ -89,5 +89,5 @@ void displayInfo() {
   }
   
   Serial.println();
-  delay(20);
+  delay(25);
 }
