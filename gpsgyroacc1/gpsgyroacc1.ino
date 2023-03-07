@@ -90,5 +90,4 @@ void displayInfo() {
   }
   
   Serial.println();
-  Serial.println();
 }
