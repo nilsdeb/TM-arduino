@@ -38,7 +38,7 @@ void loop() {
 void displayInfo() {
   float x, y, z;
   
-  Serial.print("Accelerometre");    //que on comprenne quelle chiffre est quoi
+  Serial.print("Accelerometre:  ");    //que on comprenne quelle chiffre est quoi
   Serial.println();   //laisse une ligne vide
   
   IMU.readAcceleration(x, y, z);    //precise x,y,z sont de l accelerometre
@@ -48,7 +48,7 @@ void displayInfo() {
     Serial.print('\t');
     Serial.println(z);
 
-  Serial.print("Gyroscope");
+  Serial.print("Gyroscope:  ");
   Serial.println();
   
   IMU.readGyroscope(x, y, z);
@@ -64,7 +64,7 @@ void displayInfo() {
     Serial.print(gps.location.lng(), 6);
 
     
-  Serial.print(F("  Date/Time: "));
+  Serial.print(F("Date/Time: "));
   if (gps.date.isValid()){
     Serial.print(gps.date.month());
     Serial.print(F("/"));
@@ -74,7 +74,7 @@ void displayInfo() {
   }
 
 
-  Serial.print(F(" "));
+  Serial.print(F("Heure: "));
   if (gps.time.isValid()){
     if (gps.time.hour() < 10) Serial.print(F("0"));
     Serial.print(gps.time.hour());
