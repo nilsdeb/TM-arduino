@@ -30,7 +30,6 @@ void loop() {
     Serial.println(F("No GPS detected: check wiring. Wait for all data"));
     while(true);
   }
-  delay(300);   //attend 0.3 secondes (en mili sec.)
 }
 
 
@@ -68,9 +67,9 @@ void displayInfo() {
   Serial.print("Time: ");
   if (gps.date.isValid()){
     Serial.print(gps.date.month());
-    Serial.print(F("/"));
+    Serial.print(F("."));
     Serial.print(gps.date.day());
-    Serial.print(F("/"));
+    Serial.print(F("."));
     Serial.print(gps.date.year());
   }
 
@@ -90,4 +89,5 @@ void displayInfo() {
   }
   
   Serial.println();
+  delay(20);
 }
