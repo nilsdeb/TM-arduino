@@ -58,13 +58,14 @@ void displayInfo() {
     Serial.print('\t');
     Serial.println(z);
 
-  Serial.print(F("Location: ")); 
+  Serial.print("Location: "); 
     Serial.print(gps.location.lat(), 6);
     Serial.print(F(","));
     Serial.print(gps.location.lng(), 6);
+    Serial.println(z);
 
     
-  Serial.print(F("Date/Time: "));
+  Serial.print("Time: ");
   if (gps.date.isValid()){
     Serial.print(gps.date.month());
     Serial.print(F("/"));
@@ -73,8 +74,7 @@ void displayInfo() {
     Serial.print(gps.date.year());
   }
 
-
-  Serial.print(F("Heure: "));
+  Serial.print("  ");
   if (gps.time.isValid()){
     if (gps.time.hour() < 10) Serial.print(F("0"));
     Serial.print(gps.time.hour());
