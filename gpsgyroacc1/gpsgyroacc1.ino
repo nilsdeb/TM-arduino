@@ -20,7 +20,22 @@ void setup() {
   Serial.println();
 }
 
+
 void loop() {
+  
+ while (ss.available() > 0)    // This sketch displays information every time a new sentence is correctly encoded.
+    if (gps.encode(ss.read()))
+      displayInfo();
+  if (millis() > 5000 && gps.charsProcessed() < 10){
+    Serial.println(F("No GPS detected: check wiring. Wait for all data"));
+    while(true);
+  }
+  delay(300);   //attend 0.3 secondes (en mili sec.)
+}
+
+
+
+void displayInfo() {
   float x, y, z;
   
   Serial.print("Accelerometre");    //que on comprenne quelle chiffre est quoi
@@ -42,5 +57,38 @@ void loop() {
     Serial.print(y);
     Serial.print('\t');
     Serial.println(z);
-  delay(300);   //attend 3 secondes (en mili sec.)
+
+  Serial.print(F("Location: ")); 
+    Serial.print(gps.location.lat(), 6);
+    Serial.print(F(","));
+    Serial.print(gps.location.lng(), 6);
+
+    
+  Serial.print(F("  Date/Time: "));
+  if (gps.date.isValid()){
+    Serial.print(gps.date.month());
+    Serial.print(F("/"));
+    Serial.print(gps.date.day());
+    Serial.print(F("/"));
+    Serial.print(gps.date.year());
+  }
+
+
+  Serial.print(F(" "));
+  if (gps.time.isValid()){
+    if (gps.time.hour() < 10) Serial.print(F("0"));
+    Serial.print(gps.time.hour());
+    Serial.print(F(":"));
+    if (gps.time.minute() < 10) Serial.print(F("0"));
+    Serial.print(gps.time.minute());
+    Serial.print(F(":"));
+    if (gps.time.second() < 10) Serial.print(F("0"));
+    Serial.print(gps.time.second());
+    Serial.print(F("."));
+    if (gps.time.centisecond() < 10) Serial.print(F("0"));
+    Serial.print(gps.time.centisecond());
+  }
+  
+  Serial.println();
+  Serial.println();
 }
