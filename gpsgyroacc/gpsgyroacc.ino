@@ -6,8 +6,11 @@ static const int RXPin = 3, TXPin = 4;    //defini pin GPS
 static const uint32_t GPSBaud = 9600;   // defini communication avec GPS
 
 
-TinyGPSPlus gps;    // The TinyGPS++ object
-SoftwareSerial ss(RXPin, TXPin);    // The serial connection to the GPS device
+const int boutonPin = 2; // Broche utilisée pour le bouton a changer
+bool mesureEnCours = false; // Variable pour suivre l'état de la mesure
+
+
+
 
 
 void setup() {
@@ -15,15 +18,34 @@ void setup() {
   Serial.begin(9600);   //moniteur
   IMU.begin();    //allume IMU
   ss.begin(GPSBaud);    //gps
-
-  Serial.println("Acceleration et gyroscope interne up");
+  
+  pinMode(boutonPin, INPUT);  // Configure le bouton en entrée
+  TinyGPSPlus gps;    // The TinyGPS++ object
+  SoftwareSerial ss(RXPin, TXPin);    // The serial connection to the GPS device
+  Serial.println("arduino up");
   Serial.println();
 }
 
 
+
+
 void loop() {
-  
- while (ss.available() > 0)    // This sketch displays information every time a new sentence is correctly encoded.
+  if (digitalRead(boutonPin) == HIGH) { // Vérifie l'état du bouton
+    delay(50); // Attente pour éviter les rebonds du bouton
+    
+    if (digitalRead(boutonPin) == HIGH) { // Vérifie si le bouton est toujours enfoncé
+      if (!mesureEnCours) {
+        demarrerMesure(); // Démarre la mesure si elle n'est pas déjà en cours
+      } else {
+        arreterMesure(); // Arrête la mesure si elle est en cours
+      }
+    }
+  }
+}
+
+void demarrerMesure() {
+  mesureEnCours = true;   //change la variable pour savoir si la mesure est en cours ou non
+  while (ss.available() > 0)    // This sketch displays information every time a new sentence is correctly encoded.
     if (gps.encode(ss.read()))
       displayInfo();
   if (millis() > 5000 && gps.charsProcessed() < 10){
@@ -91,3 +113,104 @@ void displayInfo() {
   Serial.println();
   delay(25);
 }
+
+
+
+
+
+
+void arreterMesure() {
+  mesureEnCours = false;
+  
+  // Ajoutez ici le code pour arrêter votre mesure
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <SPI.h>
+#include <SD.h>
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
+
+#define BNO055_SAMPLERATE_DELAY_MS (10)
+
+Adafruit_BNO055 bno = Adafruit_BNO055();
+
+File dataFile; // Fichier pour enregistrer les données sur la carte SD
+
+void setup() {
+  Serial.begin(9600);
+  while (!Serial) {
+    delay(10);
+  }
+
+  if (!SD.begin(10)) {
+    Serial.println("Échec de l'initialisation de la carte SD !");
+    return;
+  }
+
+  if (!bno.begin()) {
+    Serial.println("Échec de l'initialisation du BNO055 !");
+    while (1);
+  }
+
+  dataFile = SD.open("data.txt", FILE_WRITE);
+  if (dataFile) {
+    dataFile.println("Timestamp, Accel X, Accel Y, Accel Z, Gyro X, Gyro Y, Gyro Z, Euler Heading, Euler Roll, Euler Pitch");
+    dataFile.close();
+  } else {
+    Serial.println("Erreur lors de l'ouverture du fichier !");
+  }
+}
+
+void loop() {
+  sensors_event_t event;
+  bno.getEvent(&event);
+
+  dataFile = SD.open("data.txt", FILE_WRITE);
+  if (dataFile) {
+    dataFile.print(millis());
+    dataFile.print(", ");
+    dataFile.print(event.acceleration.x);
+    dataFile.print(", ");
+    dataFile.print(event.acceleration.y);
+    dataFile.print(", ");
+    dataFile.print(event.acceleration.z);
+    dataFile.print(", ");
+    dataFile.print(event.gyro.x);
+    dataFile.print(", ");
+    dataFile.print(event.gyro.y);
+    dataFile.print(", ");
+    dataFile.print(event.gyro.z);
+    dataFile.print(", ");
+    dataFile.print(event.orientation.x);
+    dataFile.print(", ");
+    dataFile.print(event.orientation.y);
+    dataFile.print(", ");
+    dataFile.println(event.orientation.z);
+
+    dataFile.close();
+  } else {
+    Serial.println("Erreur lors de l'ouverture du fichier !");
+  }
+
+  delay(BNO055_SAMPLERATE_DELAY_MS);
+}
+
+
+
+
+
+//code pour ecrire sur une carte sd, pas encore integrer car je ne sais pas quelle cartes sd j'ai et a tester sur le capteur directement
