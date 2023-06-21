@@ -132,7 +132,12 @@ void arreterMesure() {
 
 
 
-
+// reste a faire
+// structurere et rendre lisible , refaire cette liste de tache au propore
+//verifier se l'histoire du bouton fonctionne
+//inclure la question de l eccriture des donnée sur la cartes sd
+//inclure les donnée de vitesse donnée par le gps
+//code sd et gps par chat en dessous
 
 
 
@@ -213,4 +218,43 @@ void loop() {
 
 
 
-//code pour ecrire sur une carte sd, pas encore integrer car je ne sais pas quelle cartes sd j'ai et a tester sur le capteur directement
+#include <SoftwareSerial.h>
+
+SoftwareSerial gpsSerial(10, 11); // Définir les broches RX et TX du module GPS
+
+void setup() {
+  Serial.begin(9600);
+  gpsSerial.begin(9600);
+}
+
+void loop() {
+  if (gpsSerial.available()) {
+    String gpsData = gpsSerial.readStringUntil('\n');
+    if (gpsData.startsWith("$GPRMC")) {
+      // Récupérer les données de vitesse
+      char speedData[7];
+      int index = 0;
+      for (int i = 0; i < gpsData.length(); i++) {
+        if (gpsData[i] == ',') {
+          index++;
+          if (index == 7) {
+            i++;
+            for (int j = 0; j < 6; j++) {
+              speedData[j] = gpsData[i++];
+            }
+            speedData[6] = '\0';
+            break;
+          }
+        }
+      }
+
+      // Convertir la vitesse en float
+      float speed = atof(speedData);
+
+      // Afficher la vitesse
+      Serial.print("Vitesse : ");
+      Serial.print(speed);
+      Serial.println(" km/h");
+    }
+  }
+}
