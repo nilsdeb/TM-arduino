@@ -43,15 +43,6 @@ SoftwareSerial ss(RXPin, TXPin);
 // defini communication avec GPS
 static const uint32_t GPSBaud = 9600;
 
-// Variable si ca mesure ou pas
-bool mesure = false;
-
-// The TinyGPS++ object
-TinyGPSPlus gps;
-
-// Objet de fichier pour la carte SD
-File dataFile;
-
 // structure qui nous permet de de print lireMesure
 struct Mesure {
   float accX;
@@ -63,6 +54,54 @@ struct Mesure {
   float latitude;
   float longitude;
 };
+
+// code de lecture de l imu et du gps
+float lireMesure() {
+
+  Mesure mesure;
+
+  
+  // declaration d'un objet interne a la bibli
+  sensors_event_t accelEvent;
+
+  // capture des donnees
+  IMU.readAcceleration(accelEvent);
+  mesure.accX = accelEvent.acceleration.x;
+  mesure.accY = accelEvent.acceleration.y;
+  mesure.accZ = accelEvent.acceleration.z;
+  
+  // declaration d'un objet interne a la bibli
+  sensors_event_t gyroEvent;
+  
+  // capture des donnees
+  IMU.readGyro(gyroEvent);
+  mesure.gyroX = gyroEvent.gyro.x;
+  mesure.gyroY = gyroEvent.gyro.y;
+  mesure.gyroZ = gyroEvent.gyro.z;
+
+  // test du signal gps
+  TinyGPSPlus gps;
+  while (ss.available() > 0) {
+    gps.encode(ss.read());
+  }
+
+  // lecture gps
+  mesure.latitude = gps.location.lat();
+  mesure.longitude = gps.location.lng();
+
+  // mets tout cela en forma mesure
+  return mesure;
+}
+
+// Variable si ca mesure ou pas
+bool mesureEnCours = false;
+
+// The TinyGPS++ object
+TinyGPSPlus gps;
+
+// Objet de fichier pour la carte SD
+File dataFile;
+
 
 
 void setup() {
@@ -111,10 +150,10 @@ void loop() {
     if (digitalRead(boutonPin) == HIGH) {
 
       // verifie la constente mesure  ! inverse la logique, donc demare quand c est faux
-      if (!mesure) {
+      if (!mesureEnCours) {
 
         // change l etat de la variable
-        mesure = true;
+        mesureEnCours = true;
         
         // Ouverture du fichier pour écriture en ajoutant les données
         dataFile = SD.open("donnees.txt", FILE_WRITE);
@@ -133,7 +172,7 @@ void loop() {
       } else {
       
       // change l etat de la variable
-      mesure = false;
+      mesureEnCours = false;
 
       // ferme le fichier
       dataFile.close();    
@@ -146,51 +185,21 @@ void loop() {
     // precise ce qu est mesure
     float mesure = lireMesure();
 
-    // comprendre de quoi on parle
-    Serial.print("Mesure : ");
-
-    // imprime sur le serial
-    Serial.println(mesure);
-
-    // Écrire la mesure dans le fichier sur la carte SD
-    dataFile.println(mesure);  
-
-  } else {
-}
-     
-// code de lecture de l imu et du gps
-float lireMesure() {
-  
-  // declaration d'un objet interne a la bibli
-  sensors_event_t accelEvent;
-
-  // capture des donnees
-  IMU.readAcceleration(accelEvent);
-  mesure.accX = accelEvent.acceleration.x;
-  mesure.accY = accelEvent.acceleration.y;
-  mesure.accZ = accelEvent.acceleration.z;
-  
-  // declaration d'un objet interne a la bibli
-  sensors_event_t gyroEvent;
-  
-  // capture des donnees
-  IMU.readGyro(gyroEvent);
-  mesure.gyroX = gyroEvent.gyro.x;
-  mesure.gyroY = gyroEvent.gyro.y;
-  mesure.gyroZ = gyroEvent.gyro.z;
-
-  // test du signal gps
-  TinyGPSPlus gps;
-  while (ss.available() > 0) {
-    gps.encode(ss.read());
-  }
-
-  // lecture gps
-  mesure.latitude = gps.location.lat();
-  mesure.longitude = gps.location.lng();
-
-  // mets tout cela en forma mesure
-  return mesure;
-}
-
+    dataFile.print("AccX=");
+    dataFile.print(mesure.accX);
+    dataFile.print(", AccY=");
+    dataFile.print(mesure.accY);
+    dataFile.print(", AccZ=");
+    dataFile.print(mesure.accZ);
+    dataFile.print(", GyroX=");
+    dataFile.print(mesure.gyroX);
+    dataFile.print(", GyroY=");
+    dataFile.print(mesure.gyroY);
+    dataFile.print(", GyroZ=");
+    dataFile.print(mesure.gyroZ);
+    dataFile.print(", Latitude=");
+    dataFile.print(mesure.latitude);
+    dataFile.print(", Longitude=");
+    dataFile.println(mesure.longitude)
+  }     
 }
