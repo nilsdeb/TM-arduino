@@ -1,6 +1,6 @@
 #include <Arduino_LSM6DS3.h>    //librairie de IMU
 #include <TinyGPS++.h>    //librairie gps
-#include <SoftwareSerial.h>   //libraire de comme avec capteur externe
+#include <SoftwareSerial.h>   //libraire de com avec capteur externe
 
 static const int RXPin = 3, TXPin = 4;    //defini pin GPS
 static const uint32_t GPSBaud = 9600;   // defini communication avec GPS
@@ -257,4 +257,72 @@ void loop() {
       Serial.println(" km/h");
     }
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+  #include <SD.h>
+
+const int chipSelect = 10; // Broche CS (Chip Select) de la carte SD
+
+File dataFile; // Objet de fichier pour la carte SD
+
+void setup() {
+  // Initialisation de la communication série
+  Serial.begin(9600);
+
+  // Initialisation de la carte SD
+  if (!SD.begin(chipSelect)) {
+    Serial.println("Erreur lors de l'initialisation de la carte SD !");
+    return;
+  }
+
+  // Ouverture du fichier pour écriture en ajoutant les données
+  dataFile = SD.open("donnees.txt", FILE_WRITE);
+  if (!dataFile) {
+    Serial.println("Erreur lors de l'ouverture du fichier !");
+    return;
+  }
+}
+
+void loop() {
+  // Lire la valeur de mesure depuis un capteur
+  float mesure = lireMesure(); // Remplacez cette ligne par votre fonction de lecture de mesure
+
+  // Afficher la mesure sur le moniteur série
+  Serial.print("Mesure : ");
+  Serial.println(mesure);
+
+  // Écrire la mesure dans le fichier sur la carte SD
+  dataFile.println(mesure);
+
+  // Attendre quelques secondes avant de prendre la mesure suivante
+  delay(5000);
+}
+
+float lireMesure() {
+  // Code pour lire la valeur de mesure depuis un capteur
+  // Remplacez cette fonction par votre propre code de lecture de mesure
+  // et retournez la valeur mesurée sous forme de float
+}
+
+
+
+
+
+
+
+
+
+
+//aussi a integrer
 }
