@@ -55,42 +55,41 @@ struct Mesure {
   float longitude;
 };
 
+
+
 // code de lecture de l imu et du gps
-float lireMesure() {
-
-  Mesure mesure;
+void lireMesure() {
+  float accelX, accelY, accelZ;
+  float gyroX, gyroY, gyroZ;
 
   
-  // declaration d'un objet interne a la bibli
-  sensors_event_t accelEvent;
 
-  // capture des donnees
-  IMU.readAcceleration(accelEvent);
-  mesure.accX = accelEvent.acceleration.x;
-  mesure.accY = accelEvent.acceleration.y;
-  mesure.accZ = accelEvent.acceleration.z;
-  
-  // declaration d'un objet interne a la bibli
-  sensors_event_t gyroEvent;
-  
-  // capture des donnees
-  IMU.readGyro(gyroEvent);
-  mesure.gyroX = gyroEvent.gyro.x;
-  mesure.gyroY = gyroEvent.gyro.y;
-  mesure.gyroZ = gyroEvent.gyro.z;
+   Mesure mesure;
 
-  // test du signal gps
-  TinyGPSPlus gps;
+
+  IMU.readAcceleration(accelX, accelY, accelZ);
+  IMU.readGyroscope(gyroX, gyroY, gyroZ);
+
   while (ss.available() > 0) {
     gps.encode(ss.read());
   }
+  
+  float latitude = gps.location.lat();
+  float longitude = gps.location.lng();
 
-  // lecture gps
-  mesure.latitude = gps.location.lat();
-  mesure.longitude = gps.location.lng();
+  // Mettre à jour la structure Mesure
+  mesure.accX = accelX;
+  mesure.accY = accelY;
+  mesure.accZ = accelZ;
+  mesure.gyroX = gyroX;
+  mesure.gyroY = gyroY;
+  mesure.gyroZ = gyroZ;
+  mesure.latitude = latitude;
+  mesure.longitude = longitude;
+}
 
   // mets tout cela en forma mesure
-  return mesure;
+  //return mesure;
 }
 
 // Variable si ca mesure ou pas
@@ -119,13 +118,13 @@ void setup() {
   pinMode(boutonPin, INPUT);
 
   // allume la carte sd
-  if (!SD.begin(chipSelectPin)) {
+  if (!SD.begin(chipSelect)) {
 
     // si elle s allume pas attendre 50 ms
     delay(50);
 
     // reessayer
-    SD.begin(chipSelectPin);
+    SD.begin(chipSelect);
   }
   // ouverture du fichier
   dataFile = SD.open("donnees.txt", FILE_WRITE);
