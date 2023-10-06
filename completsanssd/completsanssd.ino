@@ -15,10 +15,10 @@
 
 
 // defini pin bouton (a changer)
-const int boutonPin = 5;
+const int boutonPin = 8;
 
 //defini pin GPS RX = reception    TX = transmission
-static const int RXPin = 2, TXPin = 3;
+static const int RXPin = 4, TXPin = 3;
 
 // The serial connection to the GPS device
 SoftwareSerial ss(RXPin, TXPin);
@@ -74,8 +74,8 @@ void lireMesure(Mesure &mesure) {
   }
 
   //  mettre a jour la structure mesure
-  mesure.latitude = gps.location.lat();
-  mesure.longitude = gps.location.lng();
+  mesure.latitude = gps.location.lat(), 6;
+  mesure.longitude = gps.location.lng(), 6;
 }
 
 
