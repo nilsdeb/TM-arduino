@@ -22,7 +22,7 @@
 const int chipSelect = 10;
 
 // defini pin bouton (a changer)
-const int boutonPin = 2;
+const int boutonPin = 5;
 
 //defini pin GPS RX = reception    TX = transmission
 static const int RXPin = 3, TXPin = 4;
