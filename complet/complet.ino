@@ -28,6 +28,16 @@
 ///////////////////////////////   definition   /////////////////////////////////////////
 
 
+
+// Variable si ca mesure ou pas
+bool mesureEnCours = false;
+
+// The TinyGPS++ object
+TinyGPSPlus gps;
+
+// Objet de fichier pour la carte SD
+File dataFile;
+
 // defini pin de la carte SD (a changer)
 const int chipSelect = 10;
 
@@ -43,7 +53,11 @@ SoftwareSerial ss(RXPin, TXPin);
 // defini communication avec GPS
 static const uint32_t GPSBaud = 9600;
 
-// structure qui nous permet de de print lireMesure
+
+// Declare a global variable
+int gpsValue;
+
+// structure qui nous permet de stocker les mesures
 struct Mesure {
   float accX;
   float accY;
@@ -88,18 +102,7 @@ void lireMesure() {
   mesure.longitude = longitude;
 }
 
-  // mets tout cela en forma mesure
-  //return mesure;
-}
 
-// Variable si ca mesure ou pas
-bool mesureEnCours = false;
-
-// The TinyGPS++ object
-TinyGPSPlus gps;
-
-// Objet de fichier pour la carte SD
-File dataFile;
 
 
 
@@ -111,8 +114,9 @@ void setup() {
   // allume IMU
   IMU.begin();
 
-  // gps
-  ss.begin(GPSBaud);
+  // Démarrez la communication série pour le débogage
+  Serial.begin(9600);
+
 
   // Configure le bouton en entrée
   pinMode(boutonPin, INPUT);
@@ -179,7 +183,7 @@ void loop() {
   }
 
   // verifie si la constante
-  if (mesure) {
+  if (mesureEnCours) {
 
     // precise ce qu est mesure
     float mesure = lireMesure();
