@@ -1,5 +1,6 @@
+#include <TinyGPSPlus.h>
+
 #include <Arduino_LSM6DS3.h>    //librairie de IMU
-#include <TinyGPS++.h>    //librairie gps
 #include <SoftwareSerial.h>   //libraire de com avec capteur externe
 
 static const int RXPin = 3, TXPin = 4;    //defini pin GPS
@@ -9,19 +10,19 @@ static const uint32_t GPSBaud = 9600;   // defini communication avec GPS
 const int boutonPin = 2; // Broche utilisée pour le bouton a changer
 bool mesureEnCours = false; // Variable pour suivre l'état de la mesure
 
-
+SoftwareSerial ss(RXPin, TXPin);    // The serial connection to the GPS device
 
 
 
 void setup() {
-  
+  TinyGPSPlus gps;    // The TinyGPS++ object
   Serial.begin(9600);   //moniteur
   IMU.begin();    //allume IMU
   ss.begin(GPSBaud);    //gps
   
   pinMode(boutonPin, INPUT);  // Configure le bouton en entrée
-  TinyGPSPlus gps;    // The TinyGPS++ object
-  SoftwareSerial ss(RXPin, TXPin);    // The serial connection to the GPS device
+  
+  
   Serial.println("arduino up");
   Serial.println();
 }
@@ -138,191 +139,3 @@ void arreterMesure() {
 //inclure la question de l eccriture des donnée sur la cartes sd
 //inclure les donnée de vitesse donnée par le gps
 //code sd et gps par chat en dessous
-
-
-
-
-#include <SPI.h>
-#include <SD.h>
-#include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_BNO055.h>
-#include <utility/imumaths.h>
-
-#define BNO055_SAMPLERATE_DELAY_MS (10)
-
-Adafruit_BNO055 bno = Adafruit_BNO055();
-
-File dataFile; // Fichier pour enregistrer les données sur la carte SD
-
-void setup() {
-  Serial.begin(9600);
-  while (!Serial) {
-    delay(10);
-  }
-
-  if (!SD.begin(10)) {
-    Serial.println("Échec de l'initialisation de la carte SD !");
-    return;
-  }
-
-  if (!bno.begin()) {
-    Serial.println("Échec de l'initialisation du BNO055 !");
-    while (1);
-  }
-
-  dataFile = SD.open("data.txt", FILE_WRITE);
-  if (dataFile) {
-    dataFile.println("Timestamp, Accel X, Accel Y, Accel Z, Gyro X, Gyro Y, Gyro Z, Euler Heading, Euler Roll, Euler Pitch");
-    dataFile.close();
-  } else {
-    Serial.println("Erreur lors de l'ouverture du fichier !");
-  }
-}
-
-void loop() {
-  sensors_event_t event;
-  bno.getEvent(&event);
-
-  dataFile = SD.open("data.txt", FILE_WRITE);
-  if (dataFile) {
-    dataFile.print(millis());
-    dataFile.print(", ");
-    dataFile.print(event.acceleration.x);
-    dataFile.print(", ");
-    dataFile.print(event.acceleration.y);
-    dataFile.print(", ");
-    dataFile.print(event.acceleration.z);
-    dataFile.print(", ");
-    dataFile.print(event.gyro.x);
-    dataFile.print(", ");
-    dataFile.print(event.gyro.y);
-    dataFile.print(", ");
-    dataFile.print(event.gyro.z);
-    dataFile.print(", ");
-    dataFile.print(event.orientation.x);
-    dataFile.print(", ");
-    dataFile.print(event.orientation.y);
-    dataFile.print(", ");
-    dataFile.println(event.orientation.z);
-
-    dataFile.close();
-  } else {
-    Serial.println("Erreur lors de l'ouverture du fichier !");
-  }
-
-  delay(BNO055_SAMPLERATE_DELAY_MS);
-}
-
-
-
-
-
-#include <SoftwareSerial.h>
-
-SoftwareSerial gpsSerial(10, 11); // Définir les broches RX et TX du module GPS
-
-void setup() {
-  Serial.begin(9600);
-  gpsSerial.begin(9600);
-}
-
-void loop() {
-  if (gpsSerial.available()) {
-    String gpsData = gpsSerial.readStringUntil('\n');
-    if (gpsData.startsWith("$GPRMC")) {
-      // Récupérer les données de vitesse
-      char speedData[7];
-      int index = 0;
-      for (int i = 0; i < gpsData.length(); i++) {
-        if (gpsData[i] == ',') {
-          index++;
-          if (index == 7) {
-            i++;
-            for (int j = 0; j < 6; j++) {
-              speedData[j] = gpsData[i++];
-            }
-            speedData[6] = '\0';
-            break;
-          }
-        }
-      }
-
-      // Convertir la vitesse en float
-      float speed = atof(speedData);
-
-      // Afficher la vitesse
-      Serial.print("Vitesse : ");
-      Serial.print(speed);
-      Serial.println(" km/h");
-    }
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-  #include <SD.h>
-
-const int chipSelect = 10; // Broche CS (Chip Select) de la carte SD
-
-File dataFile; // Objet de fichier pour la carte SD
-
-void setup() {
-  // Initialisation de la communication série
-  Serial.begin(9600);
-
-  // Initialisation de la carte SD
-  if (!SD.begin(chipSelect)) {
-    Serial.println("Erreur lors de l'initialisation de la carte SD !");
-    return;
-  }
-
-  // Ouverture du fichier pour écriture en ajoutant les données
-  dataFile = SD.open("donnees.txt", FILE_WRITE);
-  if (!dataFile) {
-    Serial.println("Erreur lors de l'ouverture du fichier !");
-    return;
-  }
-}
-
-void loop() {
-  // Lire la valeur de mesure depuis un capteur
-  float mesure = lireMesure(); // Remplacez cette ligne par votre fonction de lecture de mesure
-
-  // Afficher la mesure sur le moniteur série
-  Serial.print("Mesure : ");
-  Serial.println(mesure);
-
-  // Écrire la mesure dans le fichier sur la carte SD
-  dataFile.println(mesure);
-
-  // Attendre quelques secondes avant de prendre la mesure suivante
-  delay(5000);
-}
-
-float lireMesure() {
-  // Code pour lire la valeur de mesure depuis un capteur
-  // Remplacez cette fonction par votre propre code de lecture de mesure
-  // et retournez la valeur mesurée sous forme de float
-}
-
-
-
-
-
-
-
-
-
-
-//aussi a integrer
-}
